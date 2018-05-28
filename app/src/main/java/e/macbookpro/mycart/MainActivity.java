@@ -10,12 +10,14 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.google.zxing.Result;
+import com.journeyapps.barcodescanner.DecoratedBarcodeView;
 
 import me.dm7.barcodescanner.zxing.ZXingScannerView;
 
 import static android.content.ContentValues.TAG;
 
 public class MainActivity extends AppCompatActivity {
+    private DecoratedBarcodeView barcodeView;
 
 
 
@@ -24,10 +26,26 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        barcodeView = findViewById(R.id.barcodeScanner);
+
         ActivityCompat.requestPermissions(MainActivity.this,
                 new String[]{Manifest.permission.CAMERA},
                 1);
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        barcodeView.resume();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        barcodeView.pause();
+    }
+
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode,
@@ -50,8 +68,6 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
 
-            // other 'case' lines to check for other
-            // permissions this app might request
         }
     }
 
