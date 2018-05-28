@@ -10,9 +10,18 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.google.zxing.ResultPoint;
+import com.google.zxing.client.android.BeepManager;
+import com.journeyapps.barcodescanner.BarcodeCallback;
+import com.journeyapps.barcodescanner.BarcodeResult;
 import com.journeyapps.barcodescanner.DecoratedBarcodeView;
+import com.journeyapps.barcodescanner.camera.CameraSettings;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import e.macbookpro.mycart.model.GetProductsResponse;
+import e.macbookpro.mycart.model.Product;
 import e.macbookpro.mycart.network.RestClient;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -23,10 +32,15 @@ import static android.content.ContentValues.TAG;
 public class MainActivity extends AppCompatActivity {
     private DecoratedBarcodeView barcodeView;
     private RestClient.RestAPI client;
+    List<Product> productList = new ArrayList<>();
+    List<Product> scannedProduct = new ArrayList<>();
 
     private RecyclerView mRecyclerView;
-    private RecyclerView.Adapter mAdapter;
+    private MyAdapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
+
+    BeepManager beepManager;
+    String lastText;
 
 
     @Override
@@ -35,7 +49,10 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         barcodeView = findViewById(R.id.barcodeScanner);
+        barcodeView.getBarcodeView().getCameraSettings().setFocusMode(CameraSettings.FocusMode.CONTINUOUS);
+        barcodeView.decodeContinuous(callback);
         client = RestClient.getClient();
+        beepManager = new BeepManager(this);
 
         getProductList();
 
@@ -50,19 +67,48 @@ public class MainActivity extends AppCompatActivity {
         mRecyclerView.setLayoutManager(mLayoutManager);
 
         // specify an adapter (see also next example)
-        mAdapter = new MyAdapter();
+        mAdapter = new MyAdapter(scannedProduct);
         mRecyclerView.setAdapter(mAdapter);
-
     }
+
+    private BarcodeCallback callback = new BarcodeCallback() {
+        @Override
+        public void barcodeResult(BarcodeResult result) {
+            if (result.getText() == null || result.getText().equals(lastText)) {
+                return;
+            }
+
+            lastText = result.getText();
+            barcodeView.setStatusText(result.getText());
+
+            beepManager.playBeepSoundAndVibrate();
+
+            for (int i = 0; i < productList.size(); i++) {
+                if (result.getText().equals(productList.get(i).getProductBarcode())) {
+                    barcodeView.setStatusText(productList.get(i).getProductName());
+                    scannedProduct.add(productList.get(i));
+                    mAdapter.setProductList(scannedProduct);
+                }
+
+            }
+
+        }
+
+        @Override
+        public void possibleResultPoints(List<ResultPoint> resultPoints) {
+
+        }
+    };
 
     private void getProductList() {
         Call<GetProductsResponse> getProductsResponseCall = client.getProductById();
         getProductsResponseCall.enqueue(new Callback<GetProductsResponse>() {
             @Override
             public void onResponse(Call<GetProductsResponse> call, Response<GetProductsResponse> response) {
-                if (response.isSuccessful()){
+                if (response.isSuccessful()) {
+                    productList = response.body().getProducts();
                     for (int i = 0; i < response.body().getProducts().size(); i++) {
-                        Log.i(TAG, "onResponse: "+response.body().getProducts().get(i).toString());
+                        Log.i(TAG, "onResponse: " + response.body().getProducts().get(i).toString());
                     }
 
                 }
@@ -87,7 +133,6 @@ public class MainActivity extends AppCompatActivity {
         super.onPause();
         barcodeView.pause();
     }
-
 
 
     @Override
