@@ -8,12 +8,11 @@
     android:weightSum="2"
     tools:context=".MainActivity">
 
-    <FrameLayout
+    <com.journeyapps.barcodescanner.DecoratedBarcodeView
+        android:id="@+id/barcodeScanner"
+        android:layout_weight="1"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_weight="1">
-        <include layout="@layout/barcode_scanner"/>
-    </FrameLayout>
+        android:layout_height="match_parent"></com.journeyapps.barcodescanner.DecoratedBarcodeView>
 
     <View
         android:layout_width="match_parent"

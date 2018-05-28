@@ -19,7 +19,7 @@ public class BarcodeScanner extends Activity implements ZXingScannerView.ResultH
         super.onCreate(state);
         mScannerView = new ZXingScannerView(this);   // Programmatically initialize the scanner view
         setContentView(R.layout.barcode_scanner);                // Set the scanner view as the content view
-    }g
+    }
 
     @Override
     public void onResume() {

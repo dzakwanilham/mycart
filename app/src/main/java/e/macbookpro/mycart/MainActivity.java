@@ -6,16 +6,21 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
 import android.widget.Toast;
 
-import com.google.zxing.Result;
+import com.journeyapps.barcodescanner.DecoratedBarcodeView;
 
-import me.dm7.barcodescanner.zxing.ZXingScannerView;
+import e.macbookpro.mycart.model.GetProductsResponse;
+import e.macbookpro.mycart.network.RestClient;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 import static android.content.ContentValues.TAG;
 
 public class MainActivity extends AppCompatActivity {
+    private DecoratedBarcodeView barcodeView;
+    private RestClient.RestAPI client;
 
 
 
@@ -24,10 +29,50 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        barcodeView = findViewById(R.id.barcodeScanner);
+        client = RestClient.getClient();
+
+        getProductList();
+
         ActivityCompat.requestPermissions(MainActivity.this,
                 new String[]{Manifest.permission.CAMERA},
                 1);
     }
+
+    private void getProductList() {
+        Call<GetProductsResponse> getProductsResponseCall = client.getProductById();
+        getProductsResponseCall.enqueue(new Callback<GetProductsResponse>() {
+            @Override
+            public void onResponse(Call<GetProductsResponse> call, Response<GetProductsResponse> response) {
+                if (response.isSuccessful()){
+                    for (int i = 0; i < response.body().getProducts().size(); i++) {
+                        Log.i(TAG, "onResponse: "+response.body().getProducts().get(i).toString());
+                    }
+
+                }
+            }
+
+            @Override
+            public void onFailure(Call<GetProductsResponse> call, Throwable t) {
+                t.printStackTrace();
+                Toast.makeText(MainActivity.this, "Gagal mendapatkan data", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        barcodeView.resume();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        barcodeView.pause();
+    }
+
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode,
@@ -50,8 +95,6 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
 
-            // other 'case' lines to check for other
-            // permissions this app might request
         }
     }
 
