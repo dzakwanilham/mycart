@@ -8,18 +8,21 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.view.View;
 import android.widget.Toast;
 
-import com.google.zxing.Result;
 import com.journeyapps.barcodescanner.DecoratedBarcodeView;
 
-import me.dm7.barcodescanner.zxing.ZXingScannerView;
+import e.macbookpro.mycart.model.GetProductsResponse;
+import e.macbookpro.mycart.network.RestClient;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 import static android.content.ContentValues.TAG;
 
 public class MainActivity extends AppCompatActivity {
     private DecoratedBarcodeView barcodeView;
+    private RestClient.RestAPI client;
 
     private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
@@ -32,6 +35,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         barcodeView = findViewById(R.id.barcodeScanner);
+        client = RestClient.getClient();
+
+        getProductList();
 
         ActivityCompat.requestPermissions(MainActivity.this,
                 new String[]{Manifest.permission.CAMERA},
@@ -47,6 +53,27 @@ public class MainActivity extends AppCompatActivity {
         mAdapter = new MyAdapter();
         mRecyclerView.setAdapter(mAdapter);
 
+    }
+
+    private void getProductList() {
+        Call<GetProductsResponse> getProductsResponseCall = client.getProductById();
+        getProductsResponseCall.enqueue(new Callback<GetProductsResponse>() {
+            @Override
+            public void onResponse(Call<GetProductsResponse> call, Response<GetProductsResponse> response) {
+                if (response.isSuccessful()){
+                    for (int i = 0; i < response.body().getProducts().size(); i++) {
+                        Log.i(TAG, "onResponse: "+response.body().getProducts().get(i).toString());
+                    }
+
+                }
+            }
+
+            @Override
+            public void onFailure(Call<GetProductsResponse> call, Throwable t) {
+                t.printStackTrace();
+                Toast.makeText(MainActivity.this, "Gagal mendapatkan data", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override
