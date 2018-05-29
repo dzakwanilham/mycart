@@ -83,14 +83,24 @@ public class MainActivity extends AppCompatActivity {
 
             beepManager.playBeepSoundAndVibrate();
 
-            for (int i = 0; i < productList.size(); i++) {
-                if (result.getText().equals(productList.get(i).getProductBarcode())) {
-                    barcodeView.setStatusText(productList.get(i).getProductName());
-                    scannedProduct.add(productList.get(i));
-                    mAdapter.setProductList(scannedProduct);
+                for (int i = 0; i < productList.size(); i++) {
+                    if (result.getText().equals(productList.get(i).getProductBarcode())) {
+                        barcodeView.setStatusText(productList.get(i).getProductName());
+                        Log.i(TAG, "barcodeResultout: "+productList.get(i).getProductId());
+                        Log.i(TAG, "barcodeResultout: "+productList.get(i).getProductName());
+
+                        if (productList.get(i).getProductId()!=0) {
+
+                            Log.i(TAG, "firstputin: "+productList.get(i).getProductId());
+                            Log.i(TAG, "firstputin: "+productList.get(i).getProductName());
+
+                            scannedProduct.add(productList.get(i));
+                            mAdapter.setProductList(scannedProduct);
+                            productList.get(i).setProductId(0);
+                        }
+                    }
                 }
 
-            }
 
         }
 
@@ -99,6 +109,15 @@ public class MainActivity extends AppCompatActivity {
 
         }
     };
+
+    private Boolean sameProduct(String text, List<Product> productList) {
+
+        for (int i = 0 ; i < productList.size();i++){
+
+        }
+        return true;
+    }
+
 
     private void getProductList() {
         Call<GetProductsResponse> getProductsResponseCall = client.getProductById();
